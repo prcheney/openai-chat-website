@@ -1,10 +1,8 @@
 {
-    "name": "openai-chat-website",
-    "version": "1.0.0",
-    "dependencies": {
-        "node-fetch": "^2.6.7"
-        "openai": "^4.0.0"
-}
-
-    }
+  "name": "openai-chat-site",
+  "version": "1.0.0",
+  "dependencies": {
+    "node-fetch": "^2.6.7",
+    "openai": "^4.0.0"
+  }
 }
