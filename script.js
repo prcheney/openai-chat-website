@@ -29,8 +29,21 @@ const sendMessage = async () => {
         // Add bot response to chat
         const botDiv = document.createElement('div');
         botDiv.classList.add('message', 'bot');
-        botDiv.innerHTML = formatLinks(data.response); // Render links as clickable
+        botDiv.textContent = data.response;
         chatBox.appendChild(botDiv);
+
+        // Check for an email in the user's message
+        const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
+        const emailMatch = userMessage.match(emailRegex);
+
+        if (emailMatch) {
+            const email = emailMatch[0];
+            botDiv.textContent += `\nAdding ${email} to the newsletter...`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            const result = await saveEmailToServer(email);
+            botDiv.textContent += `\n${result.message}`;
+        }
 
         // Scroll to the latest message
         chatBox.scrollTop = chatBox.scrollHeight;
@@ -42,6 +55,29 @@ const sendMessage = async () => {
     userInput.value = '';
 };
 
+// Function to call serverless function for saving email
+const saveEmailToServer = async (email) => {
+    try {
+        const response = await fetch('/.netlify/functions/addSubscriber', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email }),
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.error);
+        }
+
+        return { message: 'Successfully subscribed to the newsletter!' };
+    } catch (error) {
+        console.error('Error saving email to server:', error);
+        return { message: 'Failed to subscribe. Please try again later.' };
+    }
+};
+
 // Add click event listener to the send button
 sendBtn.addEventListener('click', sendMessage);
 
@@ -51,11 +87,3 @@ userInput.addEventListener('keypress', (event) => {
         sendMessage();
     }
 });
-
-// Function to convert URLs in text to clickable links
-const formatLinks = (text) => {
-    return text.replace(
-        /(https?:\/\/[^\s]+)/g,
-        (url) => `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`
-    );
-};
