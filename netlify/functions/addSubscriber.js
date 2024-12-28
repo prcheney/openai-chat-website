@@ -52,7 +52,13 @@ exports.handler = async function (event) {
                 'Content-Type': 'application/json',
                 Authorization: `Ghost ${token}`,
             },
-            body: JSON.stringify({ email }),
+            body: JSON.stringify({
+                members: [
+                    {
+                        email,
+                    },
+                ],
+            }),
         });
 
         const data = await response.json();
