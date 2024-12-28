@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 
 exports.handler = async function (event) {
     try {
+        // Parse the request body to get the email
         const body = JSON.parse(event.body);
         const { email } = body;
 
@@ -13,15 +14,36 @@ exports.handler = async function (event) {
             };
         }
 
-        // Ghost Admin API details
-        const GHOST_API_URL = 'https://kava-industry-report.ghost.io';
-        const GHOST_ADMIN_API_KEY = '6770489997928e0001f5fbc2:31a1f832b21c6b0961666c85da952efebcbd1ba9f52a7513e3d3890dae2ebc1c';
+        // Retrieve environment variables
+        const GHOST_API_URL = process.env.GHOST_API_URL; // Ghost API URL
+        const GHOST_ADMIN_API_KEY = process.env.GHOST_ADMIN_API_KEY; // Admin API Key
+
+        // Validate that the environment variables exist
+        if (!GHOST_API_URL || !GHOST_ADMIN_API_KEY) {
+            console.error('Environment variables missing');
+            return {
+                statusCode: 500,
+                body: JSON.stringify({
+                    error: 'Server configuration error: Missing environment variables.',
+                }),
+            };
+        }
 
         // Split the Admin API Key into ID and Secret
         const [id, secret] = GHOST_ADMIN_API_KEY.split(':');
 
+        // Decode the secret from hex
+        const decodedSecret = Buffer.from(secret, 'hex');
+
         // Generate the JWT
-        const token = generateGhostJWT(id, secret);
+        const token = jwt.sign(
+            {
+                exp: Math.floor(Date.now() / 1000) + 60 * 5, // Token expires in 5 minutes
+                aud: '/v3/admin/', // Audience for Ghost Admin API
+            },
+            decodedSecret,
+            { header: { kid: id, alg: 'HS256' } } // Include Key ID and algorithm
+        );
 
         // Send the email to Ghost
         const response = await fetch(`${GHOST_API_URL}/ghost/api/admin/members/`, {
@@ -55,17 +77,4 @@ exports.handler = async function (event) {
             body: JSON.stringify({ error: 'Something went wrong.' }),
         };
     }
-};
-
-// Function to generate a Ghost JWT
-const generateGhostJWT = (id, secret) => {
-    const decodedSecret = Buffer.from(secret, 'hex'); // Decode the secret from hex
-    const payload = {
-        exp: Math.floor(Date.now() / 1000) + 60 * 5, // Token expires in 5 minutes
-        aud: '/v3/admin/', // Audience
-    };
-
-    return jwt.sign(payload, decodedSecret, {
-        header: { kid: id, alg: 'HS256' }, // Include key ID in the header
-    });
 };
