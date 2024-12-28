@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenAI Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #chat-box {
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 300px;
+            overflow-y: scroll;
+            margin-bottom: 10px;
+        }
+        .message {
+            margin: 5px 0;
+        }
+        .user {
+            color: blue;
+        }
+        .bot {
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <h1>OpenAI Chat</h1>
+    <div id="chat-box"></div>
+    <input type="text" id="user-input" placeholder="Type a message..." />
+    <button id="send-btn">Send</button>
+
+    <script>
+        const chatBox = document.getElementById('chat-box');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+
+        sendBtn.addEventListener('click', async () => {
+            const userMessage = userInput.value;
+            if (!userMessage) return;
+
+            // Display user's message
+            const userMsgDiv = document.createElement('div');
+            userMsgDiv.classList.add('message', 'user');
+            userMsgDiv.textContent = `You: ${userMessage}`;
+            chatBox.appendChild(userMsgDiv);
+
+            // Call the serverless function
+            const response = await fetch('/.netlify/functions/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: userMessage }),
+            });
+            const data = await response.json();
+
+            // Display bot's response
+            const botMsgDiv = document.createElement('div');
+            botMsgDiv.classList.add('message', 'bot');
+            botMsgDiv.textContent = `Bot: ${data.response}`;
+            chatBox.appendChild(botMsgDiv);
+
+            chatBox.scrollTop = chatBox.scrollHeight;
+            userInput.value = '';
+        });
+    </script>
+</body>
+</html>
