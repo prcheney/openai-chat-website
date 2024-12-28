@@ -2,7 +2,8 @@ const chatBox = document.getElementById('chat-box');
 const userInput = document.getElementById('user-input');
 const sendBtn = document.getElementById('send-btn');
 
-sendBtn.addEventListener('click', async () => {
+// Function to send a message
+const sendMessage = async () => {
     const userMessage = userInput.value.trim();
     if (!userMessage) return;
 
@@ -39,4 +40,14 @@ sendBtn.addEventListener('click', async () => {
 
     // Clear the input field
     userInput.value = '';
+};
+
+// Add click event listener to the send button
+sendBtn.addEventListener('click', sendMessage);
+
+// Add keypress event listener to the input field
+userInput.addEventListener('keypress', (event) => {
+    if (event.key === 'Enter') {
+        sendMessage();
+    }
 });
