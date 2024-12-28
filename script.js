@@ -29,7 +29,7 @@ const sendMessage = async () => {
         // Add bot response to chat
         const botDiv = document.createElement('div');
         botDiv.classList.add('message', 'bot');
-        botDiv.textContent = data.response;
+        botDiv.innerHTML = formatLinks(data.response); // Render links as clickable
         chatBox.appendChild(botDiv);
 
         // Scroll to the latest message
@@ -51,3 +51,11 @@ userInput.addEventListener('keypress', (event) => {
         sendMessage();
     }
 });
+
+// Function to convert URLs in text to clickable links
+const formatLinks = (text) => {
+    return text.replace(
+        /(https?:\/\/[^\s]+)/g,
+        (url) => `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`
+    );
+};
